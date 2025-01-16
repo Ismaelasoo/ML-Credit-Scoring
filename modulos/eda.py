@@ -1,6 +1,7 @@
 
 import pandas as pd
-from scipy.stats import pearsonr
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr, probplot, norm, shapiro
 
 
 def head_tail ( df, n ):
@@ -60,3 +61,45 @@ def correlacion_pearson(col1, col2, df):
         print(" La correlación es estadísticamente significativa.")
     else:
         print(" No hay suficiente evidencia para concluir que la correlación es significativa.")
+        
+
+def comprueba_normalidad(df, return_type='axes', title='Comprobación de normalidad'):
+    """
+    Genera Q-Q plots para comprobar la normalidad de cada columna de un DataFrame y realiza una prueba de Shapiro-Wilk para cada una.
+    
+    Parámetros:
+    df : pandas.DataFrame
+        DataFrame cuyas columnas se evaluarán para comprobar la normalidad.
+    return_type : str, opcional
+        Tipo de retorno esperado ('axes' para devolver los gráficos, 'stats' para devolver resultados estadísticos).
+    title : str, opcional
+        Título del gráfico principal.
+
+    Retorna:
+    matplotlib.axes._subplots.AxesSubplot o dict
+        Si return_type es 'axes', devuelve los gráficos generados. Si es 'stats', devuelve un diccionario con el resultado de la prueba Shapiro-Wilk para cada columna.
+    """
+    
+    fig_tot = len(df.columns)
+    fig_por_fila = 3  
+    tamanio_fig = 4.0
+
+    num_filas = -(-fig_tot // fig_por_fila)
+    plt.figure(figsize=(tamanio_fig * fig_por_fila, tamanio_fig * num_filas))
+    plt.suptitle(title, fontsize=16)
+    
+    shapiro_results = {}
+    for i, col in enumerate(df.columns):
+        ax = plt.subplot(num_filas, fig_por_fila, i + 1)
+        probplot(df[col], dist=norm, plot=ax)
+        plt.title(col)
+        
+        # Agrega el resultado de la prueba de Shapiro-Wilk
+        stat, p_value = shapiro(df[col].dropna())  # Se usa dropna para evitar errores con valores faltantes
+        shapiro_results[col] = {'statistic': stat, 'p_value': p_value}
+    
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.show()
+    
+    if return_type == 'stats':
+        return shapiro_results
