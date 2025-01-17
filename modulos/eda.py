@@ -76,6 +76,7 @@ def comprueba_normalidad(df, return_type='axes', title='Comprobación de normali
         Título del gráfico principal.
 
     Retorna:
+    
     matplotlib.axes._subplots.AxesSubplot o dict
         Si return_type es 'axes', devuelve los gráficos generados. Si es 'stats', devuelve un diccionario con el resultado de la prueba Shapiro-Wilk para cada columna.
     """
