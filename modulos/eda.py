@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr, probplot, norm, shapiro
 
 
-def head_tail ( df, n ):
+def head_tail(df, n):
     """
     Muestra las primeras y últimas 'n' filas de un DataFrame, separadas por una fila de separación con '...'.
     
