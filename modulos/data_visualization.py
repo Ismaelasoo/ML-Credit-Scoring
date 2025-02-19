@@ -34,9 +34,39 @@ def plot_boxplot(data, title):
     
     # Mostrar el gráfico
     plt.show()
+
+def count_outliers_iqr(df, numeric_features):
+    """
+    Calcula el número de valores atípicos (outliers) en cada variable numérica 
+    utilizando el método del rango intercuartílico (IQR).
+
+    Parámetros:
+    df (pd.DataFrame): DataFrame que contiene las variables numéricas a analizar.
+    numeric_features (list): Lista con los nombres de las variables numéricas.
+
+    Retorna:
+    dict: Diccionario con el recuento de outliers por variable.
+    """
+    outlier_count = {}
+
+    for column in numeric_features:
+        # Calcular el rango intercuartílico y los límites
+        Q1 = df[column].quantile(0.25)
+        Q3 = df[column].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound, upper_bound = Q1 - 1.5 * IQR, Q3 + 1.5 * IQR
+
+        # Contar los outliers
+        outliers = df[(df[column] < lower_bound) | (df[column] > upper_bound)]
+        outlier_count[column] = outliers.shape[0]
+
+    # Mostrar el recuento de outliers
+    print('Recuento de outliers por feature:')
+    for column, count in outlier_count.items():
+        if count > 0:
+            print(f'{column}: {count}')
     
-    
-def plot_outliers_boxplots(df, numeric_features, palette='Set2', figsize=(12, 60)):
+def plot_outliers_boxplots(df, numeric_features, rows, columns, palette='Set2', figsize=(12, 20)):
     """
     Dibuja boxplots para detectar outliers en las características numéricas.
 
@@ -54,7 +84,7 @@ def plot_outliers_boxplots(df, numeric_features, palette='Set2', figsize=(12, 60
 
     # Dibujar un boxplot por cada columna numérica
     for i, column in enumerate(numeric_features):
-        plt.subplot(5, 5, i + 1)
+        plt.subplot(rows, columns, i + 1)
         sns.boxplot(data=df[[column]], color=color_viridis) 
 
     # Mostrar título y ajustar el layout
