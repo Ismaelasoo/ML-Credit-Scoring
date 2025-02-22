@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import seaborn as sns
+import os
 from sklearn.linear_model import LinearRegression
 from IPython.display import Markdown, display
 
@@ -121,24 +122,29 @@ def scatter_variable_relation(df, x, y, title=None):
     # Mostrar gráfico
     plt.show()
     
-
-def Count_Cat(df, cat_feat):
+def Count_Cat(df, cat_feat, subrep_name):
     """
     Genera un análisis descriptivo para una variable categórica en un DataFrame.
 
     Parámetros:
     df (DataFrame): El DataFrame que contiene la variable categórica.
     cat_feat (str): El nombre de la columna categórica a analizar.
+    subrep_name (str): El nombre del subdirectorio donde se guardarán las imágenes.
 
     Resultado:
     - Muestra en consola el número de categorías únicas y una tabla con las 30 categorías más frecuentes.
     - Genera un gráfico de barras mostrando el porcentaje de cada categoría.
     - Presenta una tabla con los recuentos y porcentajes de las categorías más frecuentes.
+    - Guarda la gráfica en la carpeta 'images/sub_repositorio'.
     """
 
     # Verificación inicial
     if cat_feat not in df.columns:
         raise ValueError(f"La columna '{cat_feat}' no existe en el DataFrame.")
+
+    # Crear carpetas si no existen
+    save_dir = os.path.join("images", subrep_name)
+    os.makedirs(save_dir, exist_ok=True)
 
     # Valores únicos
     unique_values = df[cat_feat].nunique()
@@ -186,23 +192,31 @@ def Count_Cat(df, cat_feat):
     table.set_fontsize(12)
     table.scale(1, 1.5)
 
-    # Mostrar visualización
-    plt.tight_layout()
-    plt.show()
+    # Guardar la gráfica solo si no existe
+    file_path = os.path.join(save_dir, f"{cat_feat}.png")
+    if not os.path.exists(file_path):
+        plt.tight_layout()
+        plt.savefig(file_path, bbox_inches='tight')
+        print(f"Gráfica guardada en: {file_path}")
+    else:
+        print(f"La gráfica ya existe en: {file_path}")
 
+    # Mostrar gráfico
+    plt.show()
     
-def Count_Quant(df, quant_feat):
+def Count_Quant(df, quant_feat, subrep_name):
     """
     Genera un análisis descriptivo para una variable cuantitativa en un DataFrame.
 
     Parámetros:
     df (DataFrame): El DataFrame que contiene la variable numérica.
     quant_feat (str): El nombre de la columna numérica a analizar.
+    subrep_name (str): El nombre del subdirectorio donde se guardarán las imágenes.
 
     Resultado:
     - Muestra en consola los principales estadísticos descriptivos (mínimo, máximo, promedio y desviación estándar).
     - Genera un histograma con una estimación de densidad (KDE) y un boxplot de la variable.
-    """
+    """ 
 
     # Encabezado
     print()
@@ -221,7 +235,7 @@ def Count_Quant(df, quant_feat):
     print(f'Promedio: {round(df[quant_feat].mean(), 2)}')
     print(f'Std.dev: {round(df[quant_feat].std(),2)}')
     print()
-    print(f'Histograma y Boxplot de {quant_feat}.')      
+    print(f'Histograma y Boxplot de {quant_feat}.')
 
     # Configuración de estilo
     color = '#EE9414'
@@ -238,18 +252,39 @@ def Count_Quant(df, quant_feat):
     axes[1].set_xlabel('')
     axes[1].set_xlim(0, 1)  # Limitar eje X
 
-    # Mostrar gráficos
-    plt.tight_layout()
-    plt.show()
-    
+    # Crear carpeta para guardar imágenes si no existe
+    save_dir = os.path.join("images", subrep_name)
+    os.makedirs(save_dir, exist_ok=True)
 
-def Analyze_Categorical_Features_Density(df, cat_feat, target_column):
+    # Guardar la gráfica solo si no existe
+    file_path = os.path.join(save_dir, f"{quant_feat}.png")
+    if not os.path.exists(file_path):
+        plt.tight_layout()
+        plt.savefig(file_path, bbox_inches='tight')
+        print(f"Gráfica guardada en: {file_path}")
+    else:
+        print(f"La gráfica ya existe en: {file_path}")
+
+    # Mostrar gráficos
+    plt.show()
+
+def Analyze_Categorical_Features_Density(df, cat_feat, target_column, subrep_name):
     '''
     Genera diagramas de densidad superpuestos para cada variable categórica,
     mostrando las distribuciones para cada valor distinto en la misma visualización.
+
+    Parámetros:
+    - df: DataFrame que contiene los datos.
+    - cat_feat: Lista de variables categóricas en el DataFrame.
+    - target_column: Nombre de la variable objetivo numérica.
+    - subrep_name: Nombre de la subcarpeta donde se guardarán las gráficas.
     '''
 
     print(f"\nAnálisis de variables categóricas respecto a la columna objetivo '{target_column}':\n")
+
+    # Crear carpetas si no existen
+    save_dir = os.path.join("images", subrep_name)
+    os.makedirs(save_dir, exist_ok=True)
 
     for v in cat_feat:
         if v == target_column:
@@ -261,6 +296,7 @@ def Analyze_Categorical_Features_Density(df, cat_feat, target_column):
 
         plt.figure(figsize=(12, 8))  # Ajustar tamaño para mejor visualización
 
+        # Dibujar la densidad para cada valor único de la variable categórica
         for valor in df[v].unique():
             subset = df[df[v] == valor]
             sns.kdeplot(subset[target_column], label=str(valor), fill=True)  # Añadir etiqueta y rellenar
@@ -269,10 +305,18 @@ def Analyze_Categorical_Features_Density(df, cat_feat, target_column):
         plt.xlabel(target_column)
         plt.ylabel("Densidad")
         plt.legend()  # Mostrar leyenda para identificar los grupos
+
+        # Guardar la gráfica solo si no existe
+        file_path = os.path.join(save_dir, f'density_{v}.png')
+        if not os.path.exists(file_path):
+            plt.savefig(file_path, bbox_inches='tight')
+            print(f"Gráfica guardada en: {file_path}")
+        else:
+            print(f"La gráfica ya existe en: {file_path}")
+
         plt.show()
         
-        
-def Analyze_Numeric_Features_Scatter(df, num_features, target_column, hue_column=None):
+def Analyze_Numeric_Features_Scatter(df, num_features, target_column, hue_column=None, subrep_name=None):
     '''
     Analiza variables numéricas respecto a una variable objetivo numérica
     mediante scatter plots con una línea de regresión lineal.
@@ -282,10 +326,16 @@ def Analyze_Numeric_Features_Scatter(df, num_features, target_column, hue_column
     - num_features: Lista de variables numéricas en el DataFrame.
     - target_column: Nombre de la variable objetivo numérica.
     - hue_column: (Opcional) Nombre de la variable categórica para definir el color de los puntos.
+    - subrep_name: Nombre de la subcarpeta donde se guardarán las gráficas.
     '''
     
     print(f"Análisis de variables numéricas respecto a la columna objetivo '{target_column}':\n")
     
+    # Crear carpetas si no existen
+    if subrep_name:
+        save_dir = os.path.join("images", subrep_name)
+        os.makedirs(save_dir, exist_ok=True)
+
     for v_num in num_features:
         if v_num == target_column:
             continue
@@ -309,4 +359,14 @@ def Analyze_Numeric_Features_Scatter(df, num_features, target_column, hue_column
         plt.ylabel(target_column)
         plt.legend()
         plt.grid(True, linestyle='--', alpha=0.6)
+
+        # Guardar la gráfica si se especifica la subcarpeta
+        if subrep_name:
+            file_path = os.path.join(save_dir, f'scatter_{v_num}.png')
+            if not os.path.exists(file_path):  # Solo guardar si no existe
+                plt.savefig(file_path, bbox_inches='tight')
+                print(f"Gráfica guardada en: {file_path}")
+            else:
+                print(f"La gráfica ya existe en: {file_path}")
+
         plt.show()
