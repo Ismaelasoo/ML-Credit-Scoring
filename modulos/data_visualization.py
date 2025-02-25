@@ -1,9 +1,11 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import seaborn as sns
 import os
 from sklearn.linear_model import LinearRegression
+import shap
 from IPython.display import Markdown, display
 
 
@@ -370,3 +372,60 @@ def Analyze_Numeric_Features_Scatter(df, num_features, target_column, hue_column
                 print(f"La gráfica ya existe en: {file_path}")
 
         plt.show()
+
+def shap_visualization(shap_values, X_test):
+    """
+    Visualiza los valores SHAP de un modelo.
+
+    Argumentos:
+        shap_values (numpy.ndarray): Valores SHAP generados para las observaciones.
+        X_test (pandas.DataFrame): DataFrame que contiene las características de las observaciones.
+
+    Gráficos:
+        - Bar plot para la importancia global de las variables.
+        - Waterfall plot para la primera observación.
+        - Force plot para las primeras 50 observaciones.
+        - Beeswarm plot para la distribución de los efectos SHAP por variable.
+        - Gráficos de dispersión de los valores SHAP para las variables más influyentes.
+    """
+
+    # Iteramos del 1 al 5 para ejecutar cada tipo de visualización
+    for i in range(1, 6):  
+        try:
+            if i == 1:
+                print(f"Ejecutando visualización {i}: Bar Plot")
+                # Bar Plot: Importancia global de las variables
+                shap.plots.bar(shap_values)
+
+            elif i == 2:
+                print(f"Ejecutando visualización {i}: Waterfall Plot")
+                # Waterfall Plot: Muestra el impacto de cada variable en la predicción de una observación específica
+                shap.plots.waterfall(shap_values[0])
+
+            elif i == 3:
+                print(f"Ejecutando visualización {i}: Force Plot")
+                # Force Plot: Explica la predicción de varias observaciones 
+                shap.force_plot(shap_values[:50], matplotlib=True)
+
+            elif i == 4:
+                print(f"Ejecutando visualización {i}: Beeswarm Plot")
+                # Beeswarm Plot: Muestra la distribución de los valores SHAP por variable
+                shap.plots.beeswarm(shap_values)
+
+            elif i == 5:
+                print(f"Ejecutando visualización {i}: Scatter Plots")
+                # Scatter Plots: Gráficos de dispersión de SHAP para las variables más influyentes
+                
+                # Calculamos la importancia media absoluta de cada variable
+                shap_importance = np.abs(shap_values.values).mean(axis=0)
+                
+                # Seleccionamos las 3 variables más influyentes en base a su importancia SHAP
+                top_features = X_test.columns[np.argsort(shap_importance)[::-1]][:3]
+                
+                # Generamos un scatter plot para cada una de las variables seleccionadas
+                for feature in top_features:
+                    shap.plots.scatter(shap_values[:, feature])
+
+        except Exception as e:
+            # Si ocurre un error en alguna visualización, lo imprimimos y continuamos con las siguientes
+            print(f"Error en la visualización {i}: {e}")
