@@ -200,7 +200,7 @@ def evaluar_modelos(modelo, X_test, y_test):
     evaluar_modelos.tabla_metricas = pd.concat([evaluar_modelos.tabla_metricas, resultados_modelo])
     
     # Ordena la tabla por R^2 de forma descendente
-    evaluar_modelos.tabla_metricas = evaluar_modelos.tabla_metricas.sort_values(by='R^2', ascending=False)
+    evaluar_modelos.tabla_metricas = evaluar_modelos.tabla_metricas.sort_values(by=['R^2', 'RMSE'], ascending=[False, True])
 
     # Retorna la tabla con las métricas actualizadas
     return evaluar_modelos.tabla_metricas  
