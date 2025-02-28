@@ -390,7 +390,7 @@ def shap_visualization(shap_values, X_test):
     """
 
     # Iteramos del 1 al 5 para ejecutar cada tipo de visualización
-    for i in range(1, 6):  
+    for i in range(1, 5):  
         try:
             if i == 1:
                 print(f"Ejecutando visualización {i}: Bar Plot")
@@ -403,16 +403,11 @@ def shap_visualization(shap_values, X_test):
                 shap.plots.waterfall(shap_values[0])
 
             elif i == 3:
-                print(f"Ejecutando visualización {i}: Force Plot")
-                # Force Plot: Explica la predicción de varias observaciones 
-                shap.force_plot(shap_values[:50], matplotlib=True)
-
-            elif i == 4:
                 print(f"Ejecutando visualización {i}: Beeswarm Plot")
                 # Beeswarm Plot: Muestra la distribución de los valores SHAP por variable
                 shap.plots.beeswarm(shap_values)
 
-            elif i == 5:
+            elif i == 4:
                 print(f"Ejecutando visualización {i}: Scatter Plots")
                 # Scatter Plots: Gráficos de dispersión de SHAP para las variables más influyentes
                 

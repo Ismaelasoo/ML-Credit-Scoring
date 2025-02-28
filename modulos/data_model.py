@@ -97,18 +97,8 @@ def graficar_error_cv(modelo):
         rmse_cv, rmse_sd = np.sqrt(mse_cv), np.sqrt(mse_sd)
 
         # Selección del mejor valor de alpha y el valor de alpha + 1 desviación estándar
-        optimo, optimo_1sd = seleccionar_alpha_optimo(rmse_cv, rmse_sd, modelo.alphas_)
+        optimo, optimo_1sd = seleccionar_alpha_optimo(rmse_cv, rmse_sd, modelo.alphas_, fraccion_sd=0.25)
 
-        # Gráfico del error con intervalo de +- 1 desviación estándar
-        fig, ax = plt.subplots(figsize=(7, 3.84))
-        ax.plot(modelo.alphas_, rmse_cv)
-        ax.fill_between(
-            modelo.alphas_,
-            rmse_cv + rmse_sd,
-            rmse_cv - rmse_sd,
-            color="red",
-            alpha=0.2
-        )
 
     elif hasattr(modelo, 'cv_values_'):
         mse_cv = modelo.cv_values_.reshape((-1, 200)).mean(axis=0)
@@ -116,7 +106,7 @@ def graficar_error_cv(modelo):
         rmse_cv, rmse_sd = np.sqrt(mse_cv), np.sqrt(mse_sd)
 
         # Selección del mejor valor de alpha y el valor de alpha + 1 desviación estándar
-        optimo, optimo_1sd = seleccionar_alpha_optimo(rmse_cv, rmse_sd, modelo.alphas)
+        optimo, optimo_1sd = seleccionar_alpha_optimo(rmse_cv, rmse_sd, modelo.alphas, fraccion_sd=0.25)
 
         # Gráfico del error con intervalo de +- 1 desviación estándar
         fig, ax = plt.subplots(figsize=(7, 3.84))
@@ -128,37 +118,40 @@ def graficar_error_cv(modelo):
             color="red",
             alpha=0.2
         )
+            # Líneas verticales indicando los valores óptimos de alpha
+        ax.axvline(
+            x=optimo,
+            c="gray",
+            linestyle="--",
+            label="Óptimo"
+        )
+
+        ax.axvline(
+            x=optimo_1sd,
+            c="blue",
+            linestyle="--",
+            label="Óptimo + 1 std"
+        )
+
+        # Ajustes de la visualización
+        ax.set_xscale("log")
+        ax.set_ylim([0, None])
+        ax.set_title("Evolución del error CV en función de la regularización")
+        ax.set_xlabel("alpha")
+        ax.set_ylabel("RMSE")
+        plt.legend()
+
+        
+        
     else:
         raise ValueError("El modelo no contiene 'mse_path_' ni 'cv_values_'. Verifique el ajuste del modelo.")
 
-    # Líneas verticales indicando los valores óptimos de alpha
-    ax.axvline(
-        x=optimo,
-        c="gray",
-        linestyle="--",
-        label="Óptimo"
-    )
-
-    ax.axvline(
-        x=optimo_1sd,
-        c="blue",
-        linestyle="--",
-        label="Óptimo + 1 std"
-    )
-
-    # Ajustes de la visualización
-    ax.set_xscale("log")
-    ax.set_ylim([0, None])
-    ax.set_title("Evolución del error CV en función de la regularización")
-    ax.set_xlabel("alpha")
-    ax.set_ylabel("RMSE")
-    plt.legend()
 
     # Impresión de los mejores valores de alpha encontrados
     print(f"Mejor valor de alpha encontrado: {optimo}")
     print(f"Mejor valor de alpha encontrado + 1 desviación estándar: {optimo_1sd}")
     
-    return optimo
+    return optimo, optimo_1sd
 
 
 def evaluar_modelos(modelo, X_test, y_test):
@@ -206,18 +199,19 @@ def evaluar_modelos(modelo, X_test, y_test):
     return evaluar_modelos.tabla_metricas  
 
 
-def seleccionar_alpha_optimo(rmse_cv, rmse_sd, alphas):
+def seleccionar_alpha_optimo(rmse_cv, rmse_sd, alphas, fraccion_sd=0.25):
     """ 
     Selecciona el valor óptimo de alpha para regularización usando la regla del mínimo 
-    más una desviación estándar.
+    más una fracción de desviación estándar.
 
     Parámetros:
     rmse_cv (numpy array): Array con los valores de RMSE obtenidos en validación cruzada.
     rmse_sd (numpy array): Array con las desviaciones estándar del RMSE para cada alpha.
     alphas (numpy array): Array con los valores de alpha evaluados.
+    fraccion_sd (float): Fracción de la desviación estándar a agregar (por defecto es 0.25).
 
     Resultado:
-    tuple: (alpha óptimo, alpha óptimo con la regla de 1 desviación estándar)
+    tuple: (alpha óptimo, alpha óptimo con la regla de fracción de desviación estándar)
     """
     
     # Encuentra el valor mínimo de RMSE en validación cruzada
@@ -226,14 +220,17 @@ def seleccionar_alpha_optimo(rmse_cv, rmse_sd, alphas):
     # Obtiene la desviación estándar asociada al mínimo RMSE
     sd_min_rmse = rmse_sd[np.argmin(rmse_cv)]
 
-    # Calcula el umbral del mínimo RMSE + 1 desviación estándar
-    min_rmse_1sd = np.max(rmse_cv[rmse_cv <= min_rmse + sd_min_rmse])
+    # Calcula el umbral del mínimo RMSE + fracción de desviación estándar
+    min_rmse_1sd = min_rmse + fraccion_sd * sd_min_rmse
 
-    # Alpha correspondiente aametrosl RMSE mínimo
+    # Alpha correspondiente al RMSE mínimo
     optimo = alphas[np.argmin(rmse_cv)]
 
-    # Alpha más pequeño cuyo RMSE esté dentro del umbral mínimo + 1 desviación estándar
-    optimo_1sd = alphas[rmse_cv == min_rmse_1sd][0]
+    # Encuentra el índice del RMSE más cercano al umbral mínimo + fracción de desviación estándar
+    idx_1sd = np.argmin(np.abs(rmse_cv - min_rmse_1sd))
+
+    # Alpha correspondiente al RMSE más cercano al umbral
+    optimo_1sd = alphas[idx_1sd]
 
     return optimo, optimo_1sd
 
