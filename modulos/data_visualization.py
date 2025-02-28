@@ -124,7 +124,7 @@ def scatter_variable_relation(df, x, y, title=None):
     # Mostrar gráfico
     plt.show()
     
-def Count_Cat(df, cat_feat, subrep_name):
+def count_cat(df, cat_feat, subrep_name):
     """
     Genera un análisis descriptivo para una variable categórica en un DataFrame.
 
@@ -206,7 +206,7 @@ def Count_Cat(df, cat_feat, subrep_name):
     # Mostrar gráfico
     plt.show()
     
-def Count_Quant(df, quant_feat, subrep_name):
+def count_quant(df, quant_feat, subrep_name):
     """
     Genera un análisis descriptivo para una variable cuantitativa en un DataFrame.
 
@@ -270,7 +270,7 @@ def Count_Quant(df, quant_feat, subrep_name):
     # Mostrar gráficos
     plt.show()
 
-def Analyze_Categorical_Features_Density(df, cat_feat, target_column, subrep_name):
+def analyze_categorical_features_density(df, cat_feat, target_column, subrep_name):
     '''
     Genera diagramas de densidad superpuestos para cada variable categórica,
     mostrando las distribuciones para cada valor distinto en la misma visualización.
@@ -318,7 +318,7 @@ def Analyze_Categorical_Features_Density(df, cat_feat, target_column, subrep_nam
 
         plt.show()
         
-def Analyze_Numeric_Features_Scatter(df, num_features, target_column, hue_column=None, subrep_name=None):
+def analyze_numeric_features_scatter(df, num_features, target_column, hue_column=None, subrep_name=None):
     '''
     Analiza variables numéricas respecto a una variable objetivo numérica
     mediante scatter plots con una línea de regresión lineal.
@@ -429,3 +429,61 @@ def shap_visualization(shap_values, X_test):
         except Exception as e:
             # Si ocurre un error en alguna visualización, lo imprimimos y continuamos con las siguientes
             print(f"Error en la visualización {i}: {e}")
+            
+def evaluar_entrenamiento(model, X_test, y_test):
+    """
+    Genera visualizaciones para evaluar el rendimiento de un modelo de regresión.
+
+    Parámetros:
+    -----------
+    model : object
+        Modelo entrenado con un método `.predict()`.
+    X_test : array-like
+        Conjunto de datos de prueba con características independientes.
+    y_test : array-like
+        Valores reales de la variable objetivo.
+
+    Salidas:
+    --------
+    Muestra tres gráficos:
+    1. Dispersión Predicciones vs Valores Reales.
+    2. Dispersión de Residuos.
+    3. Histograma de Errores de Predicción.
+    """
+
+    print(f'Evaluación del modelo: {model.__class__.__name__}')
+    
+    # Obtener predicciones
+    y_pred = model.predict(X_test)
+
+    # Gráfico 1: Predicciones vs Valores Reales
+    plt.figure(figsize=(10, 6))
+    plt.scatter(y_test, y_pred, alpha=0.6, label='Predicciones')
+    plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2, label='Línea Ideal')
+    plt.xlabel('Valores Reales')
+    plt.ylabel('Predicciones')
+    plt.title('Comparación de Predicciones vs Valores Reales')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    # Gráfico 2: Residuos vs Predicciones
+    residuals = y_test - y_pred
+    plt.figure(figsize=(10, 6))
+    plt.scatter(y_pred, residuals, alpha=0.6)
+    plt.axhline(0, color='red', lw=2, ls='--')
+    plt.xlabel('Predicciones')
+    plt.ylabel('Residuos')
+    plt.title('Análisis de Residuos')
+    plt.grid()
+    plt.show()
+
+    # Gráfico 3: Histograma de Errores de Predicción
+    plt.figure(figsize=(10, 6))
+    sns.histplot(residuals, bins=30, kde=True, stat='density')
+    plt.axvline(0, color='red', lw=2, ls='--')
+    plt.xlabel('Error de Predicción')
+    plt.ylabel('Densidad')
+    plt.title('Distribución de Errores de Predicción')
+    plt.grid()
+    plt.show()
