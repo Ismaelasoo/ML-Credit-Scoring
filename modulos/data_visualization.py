@@ -380,7 +380,7 @@ def shap_visualization(shap_values, X_test):
     Argumentos:
         shap_values (numpy.ndarray): Valores SHAP generados para las observaciones.
         X_test (pandas.DataFrame): DataFrame que contiene las características de las observaciones.
-
+3
     Gráficos:
         - Bar plot para la importancia global de las variables.
         - Waterfall plot para la primera observación.
