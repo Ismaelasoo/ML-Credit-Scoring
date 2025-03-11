@@ -176,7 +176,7 @@ def graficar_error_cv(modelo):
         c="blue",
         linestyle="--",
         label="Óptimo + 1 std"
-    )
+    ) 
 
     # Ajustes de la visualización
     ax.set_xscale("log")
